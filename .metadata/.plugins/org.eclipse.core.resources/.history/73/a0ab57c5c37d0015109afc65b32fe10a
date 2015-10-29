@@ -1,0 +1,136 @@
+package model.datastore.mysql;
+
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
+
+import model.Employee;
+import model.IEmployeeDAO;
+
+/**
+ * @author Emma Lynch
+ * @version 20151015
+ *
+ */
+public class StudentDAO implements IStudentDAO {
+	
+	protected final static boolean DEBUG = true;
+
+	@Override
+	public void createRecord(Student) {
+		final String QUERY = "insert into employee (employeeId, lastName, firstName, resHall, gradeLevel, department) VALUES (null, ?, ?, ?, ?, ?)";
+
+		try (Connection con = DBConnection.getConnection(); PreparedStatement stmt = con.prepareStatement(QUERY);) {
+			stmt.setString(1, employee.getLastName());
+			stmt.setString(2, employee.getFirstName());
+			stmt.setString(3, employee.getResHall());
+			stmt.setString(4, employee.getGradeLevel());
+			stmt.setString(5, employee.getDepartment());
+			if(DEBUG) System.out.println(stmt.toString());
+			stmt.executeUpdate();
+
+		} catch (SQLException ex) {
+			System.out.println("createRecord SQLException: " + ex.getMessage());
+		}
+	}
+
+	@Override
+	public Employee retrieveRecordById(int id) {
+		final String QUERY = "select empId, lastName, firstName, homePhone, salary from employee where empId = " + id;
+		// final String QUERY = "select empId, lastName, firstName, homePhone,
+		// salary from employee where empId = ?";
+		Employee emp = null;
+
+		try (Connection con = DBConnection.getConnection(); PreparedStatement stmt = con.prepareStatement(QUERY)) {
+			// stmt.setInt(1, id);
+			if(DEBUG) System.out.println(stmt.toString());
+			ResultSet rs = stmt.executeQuery(QUERY);
+
+			if (rs.next()) {
+				emp = new Employee(rs.getInt("empId"), rs.getString("lastName"), rs.getString("firstName"),
+						rs.getString("homePhone"), rs.getDouble("salary"));
+			}
+		} catch (SQLException ex) {
+			System.out.println("retrieveRecordById SQLException: " + ex.getMessage());
+		}
+
+		return emp;
+	}
+
+	@Override
+	public List<Employee> retrieveAllRecords() {
+		final List<Employee> myList = new ArrayList<>();
+		final String QUERY = "select empId, lastName, firstName, homePhone, salary from employee";
+
+		try (Connection con = DBConnection.getConnection(); PreparedStatement stmt = con.prepareStatement(QUERY)) {
+			if(DEBUG) System.out.println(stmt.toString());
+			ResultSet rs = stmt.executeQuery(QUERY);
+			
+			while (rs.next()) {
+				myList.add(new Employee(rs.getInt("empId"), rs.getString("lastName"), rs.getString("firstName"),
+						rs.getString("homePhone"), rs.getDouble("salary")));
+			}
+		} catch (SQLException ex) {
+			System.out.println("retrieveAllRecords SQLException: " + ex.getMessage());
+		}
+
+		return myList;
+	}
+
+	@Override
+	public void updateRecord(Employee updatedEmployee) {
+		final String QUERY = "update employee set lastName=?, firstName=?, homePhone=?, salary=? where empId=?";
+
+		try (Connection con = DBConnection.getConnection(); PreparedStatement stmt = con.prepareStatement(QUERY)) {
+			stmt.setString(1, updatedEmployee.getLastName());
+			stmt.setString(2, updatedEmployee.getFirstName());
+			stmt.setString(3, updatedEmployee.getHomePhone());
+			stmt.setDouble(4, updatedEmployee.getSalary());
+			stmt.setInt(5, updatedEmployee.getEmpId());
+			if(DEBUG) System.out.println(stmt.toString());
+			stmt.executeUpdate();
+		} catch (SQLException ex) {
+			System.out.println("updateRecord SQLException: " + ex.getMessage());
+		}
+	}
+
+	@Override
+	public void deleteRecord(int id) {
+		final String QUERY = "delete from employee where empId = ?";
+
+		try (Connection con = DBConnection.getConnection(); PreparedStatement stmt = con.prepareStatement(QUERY)) {
+			stmt.setInt(1, id);
+			if(DEBUG) System.out.println(stmt.toString());
+			stmt.executeUpdate();
+		} catch (SQLException ex) {
+			System.out.println("deleteRecord SQLException: " + ex.getMessage());
+		}
+	}
+
+	@Override
+	public void deleteRecord(Employee employee) {
+		final String QUERY = "delete from employee where empId = ?";
+
+		try (Connection con = DBConnection.getConnection(); PreparedStatement stmt = con.prepareStatement(QUERY)) {
+			stmt.setInt(1, employee.getEmpId());
+			if(DEBUG) System.out.println(stmt.toString());
+			stmt.executeUpdate();
+		} catch (SQLException ex) {
+			System.out.println("deleteRecord SQLException: " + ex.getMessage());
+		}
+	}
+
+	@Override
+	public String toString() {
+		StringBuilder sb = new StringBuilder();
+
+		for (Employee employee : retrieveAllRecords()) {
+			sb.append(employee.toString() + "\n");
+		}
+
+		return sb.toString();
+	}
+}

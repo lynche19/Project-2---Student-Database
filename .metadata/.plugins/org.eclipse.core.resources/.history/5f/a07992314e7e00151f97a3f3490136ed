@@ -1,0 +1,136 @@
+package model.datastore.mysql;
+
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
+
+import model.IStudentDAO;
+import model.Student;
+
+/**
+ * @author Emma Lynch
+ * @version 20151015
+ *
+ */
+public class StudentDAO implements IStudentDAO {
+	
+	protected final static boolean DEBUG = true;
+
+	@Override
+	public void createRecord(Student) {
+		final String QUERY = "insert into student (studentId, lastName, firstName, resHall, gradeLevel, department) VALUES (null, ?, ?, ?, ?, ?)";
+
+		try (Connection con = DBConnection.getConnection(); PreparedStatement stmt = con.prepareStatement(QUERY);) {
+			stmt.setString(1, student.getLastName());
+			stmt.setString(2, student.getFirstName());
+			stmt.setString(3, student.getResHall());
+			stmt.setString(4, student.getGradeLevel());
+			stmt.setString(5, student.getDepartment());
+			if(DEBUG) System.out.println(stmt.toString());
+			stmt.executeUpdate();
+
+		} catch (SQLException ex) {
+			System.out.println("createRecord SQLException: " + ex.getMessage());
+		}
+	}
+
+	@Override
+	public Student retrieveRecordById(int id) {
+		final String QUERY = "select studentId, lastName, firstName, resHall, gradeLevel, departmet" + id;
+		// final String QUERY = "select studentId, lastName, firstName, resHall, gradeLevel, department;
+		Student student = null;
+
+		try (Connection con = DBConnection.getConnection(); PreparedStatement stmt = con.prepareStatement(QUERY)) {
+			// stmt.setInt(1, id);
+			if(DEBUG) System.out.println(stmt.toString());
+			ResultSet rs = stmt.executeQuery(QUERY);
+
+			if (rs.next()) {
+				student = new Student(rs.getInt("studentId"), rs.getString("lastName"), rs.getString("firstName"),
+						rs.getString("resHall"), rs.getString("gradeLevel"), rs.getString("department"));
+			}
+		} catch (SQLException ex) {
+			System.out.println("retrieveRecordById SQLException: " + ex.getMessage());
+		}
+
+		return student;
+	}
+
+	@Override
+	public List<Student> retrieveAllRecords() {
+		final List<Student> myList = new ArrayList<>();
+		final String QUERY = "select studentId, lastName, firstName, resHall, gradeLevel, department";
+
+		try (Connection con = DBConnection.getConnection(); PreparedStatement stmt = con.prepareStatement(QUERY)) {
+			if(DEBUG) System.out.println(stmt.toString());
+			ResultSet rs = stmt.executeQuery(QUERY);
+			
+			while (rs.next()) {
+				myList.add(new Student(rs.getInt("studentId"), rs.getString("lastName"), rs.getString("firstName"),
+						rs.getString("resHall"), rs.getString("gradeLevel"), rs.getString("department")));
+			}
+		} catch (SQLException ex) {
+			System.out.println("retrieveAllRecords SQLException: " + ex.getMessage());
+		}
+
+		return myList;
+	}
+
+	@Override
+	public void updateRecord(Student updatedStudent) {
+		final String QUERY = "update student set lastName=?, firstName=?, resHall=?, gradeLevel=?, department=? where studentId=?";
+
+		try (Connection con = DBConnection.getConnection(); PreparedStatement stmt = con.prepareStatement(QUERY)) {
+			stmt.setString(1, updatedStudent.getLastName());
+			stmt.setString(2, updatedStudent.getFirstName());
+			stmt.setString(3, updatedStudent.getResHall());
+			stmt.setString(4, updatedStudent.getGradeLevel());
+			stmt.setString(5, updatedStudent.getDepartment());
+			stmt.setInt(6, updatedStudent.getStudentId());
+			if(DEBUG) System.out.println(stmt.toString());
+			stmt.executeUpdate();
+		} catch (SQLException ex) {
+			System.out.println("updateRecord SQLException: " + ex.getMessage());
+		}
+	}
+
+	@Override
+	public void deleteRecord(int id) {
+		final String QUERY = "delete from student where studentId = ?";
+
+		try (Connection con = DBConnection.getConnection(); PreparedStatement stmt = con.prepareStatement(QUERY)) {
+			stmt.setInt(1, id);
+			if(DEBUG) System.out.println(stmt.toString());
+			stmt.executeUpdate();
+		} catch (SQLException ex) {
+			System.out.println("deleteRecord SQLException: " + ex.getMessage());
+		}
+	}
+
+	@Override
+	public void deleteRecord(Student student) {
+		final String QUERY = "delete from student where studentId = ?";
+
+		try (Connection con = DBConnection.getConnection(); PreparedStatement stmt = con.prepareStatement(QUERY)) {
+			stmt.setInt(1, student.getStudentId());
+			if(DEBUG) System.out.println(stmt.toString());
+			stmt.executeUpdate();
+		} catch (SQLException ex) {
+			System.out.println("deleteRecord SQLException: " + ex.getMessage());
+		}
+	}
+
+	@Override
+	public String toString() {
+		StringBuilder sb = new StringBuilder();
+
+		for (Student student : retrieveAllRecords()) {
+			sb.append(student.toString() + "\n");
+		}
+
+		return sb.toString();
+	}
+}
